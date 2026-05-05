@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>场景仓库 - 节点拆解与商业化指南</title>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #0f0f0f;
+    color: #e0e0e0;
+    line-height: 1.6;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 48px 24px 36px;
+    text-align: center;
+    border-bottom: 1px solid #1e3a5f;
+  }
+  .header h1 { font-size: 28px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+  .header h1 span { color: #64ffda; }
+  .header p { color: #8899aa; font-size: 14px; }
+  .header .stats {
+    display: flex; justify-content: center; gap: 40px; margin-top: 20px;
+  }
+  .header .stats .num { font-size: 28px; font-weight: 700; color: #64ffda; }
+  .header .stats .label { font-size: 12px; color: #667788; margin-top: 2px; }
+
+  /* Container */
+  .container { max-width: 960px; margin: 0 auto; padding: 20px 16px; }
+
+  /* Scenario Card */
+  .scenario {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+  .scenario:hover { border-color: #64ffda44; }
+  .scenario-header {
+    padding: 20px 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    user-select: none;
+  }
+  .scenario-header .left { display: flex; align-items: center; gap: 14px; }
+  .scenario-header .icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .scenario-header .info h3 { font-size: 16px; color: #fff; }
+  .scenario-header .info .brief { font-size: 13px; color: #667788; margin-top: 2px; }
+  .scenario-header .toggle {
+    font-size: 18px; color: #445566;
+    transition: transform 0.3s;
+  }
+  .scenario.open .scenario-header .toggle { transform: rotate(180deg); }
+
+  /* Node Flow */
+  .scenario-body { display: none; padding: 0 24px 24px; }
+  .scenario.open .scenario-body { display: block; }
+
+  .flow {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+    padding: 16px; background: #141414; border-radius: 8px; margin-bottom: 20px;
+  }
+  .flow .node {
+    background: #1e2a3a;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #88aacc;
+    white-space: nowrap;
+  }
+  .flow .arrow { color: #445566; font-size: 14px; }
+
+  /* Node Details */
+  .node-list { display: flex; flex-direction: column; gap: 12px; }
+  .node-item {
+    background: #141414;
+    border: 1px solid #222;
+    border-radius: 8px;
+    padding: 16px 20px;
+  }
+  .node-item .node-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #64ffda;
+    margin-bottom: 4px;
+  }
+  .node-item .node-desc {
+    font-size: 13px;
+    color: #8899aa;
+    margin-bottom: 10px;
+  }
+  .node-item .tips {
+    display: flex; flex-wrap: wrap; gap: 8px;
+  }
+  .node-item .tip {
+    background: #1a2a1a;
+    border: 1px solid #2a4a2a;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    color: #88dd88;
+  }
+  .node-item .tip .tag {
+    color: #64ffda;
+    font-weight: 600;
+  }
+  .node-item .tip.commercial {
+    background: #2a1a1a;
+    border-color: #4a2a2a;
+    color: #ff8888;
+  }
+  .node-item .tip.commercial .tag { color: #ff6464; }
+
+  /* Summary */
+  .summary {
+    margin-top: 16px;
+    padding: 16px 20px;
+    background: #0a1a1a;
+    border: 1px solid #1a3a2a;
+    border-radius: 8px;
+  }
+  .summary .label { font-size: 12px; color: #64ffda; font-weight: 600; margin-bottom: 6px; }
+  .summary .text { font-size: 13px; color: #8899aa; line-height: 1.7; }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 32px;
+    color: #445566;
+    font-size: 12px;
+    border-top: 1px solid #1a1a1a;
+    margin-top: 20px;
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .header { padding: 32px 16px 24px; }
+    .header h1 { font-size: 22px; }
+    .header .stats { gap: 20px; }
+    .scenario-header { padding: 16px; }
+    .scenario-body { padding: 0 16px 16px; }
+    .flow { gap: 4px; padding: 12px; }
+    .flow .node { font-size: 12px; padding: 4px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>⚡ 场景<span>仓库</span></h1>
+  <p>AI 对话驱动开发 — 节点拆解 × 商业化优化指南</p>
+  <div class="stats">
+    <div><div class="num" id="totalScenarios">0</div><div class="label">场景</div></div>
+    <div><div class="num" id="totalNodes">0</div><div class="label">节点</div></div>
+    <div><div class="num" id="totalTips">0</div><div class="label">优化建议</div></div>
+  </div>
+</div>
+
+<div class="container" id="app"></div>
+
+<div class="footer">场景仓库 · 持续更新</div>
+
+<script>
+const scenarios = [
+  {
+    id: 'media-download',
+    icon: '🎬',
+    title: '视频媒体下载与处理',
+    brief: 'YouTube 视频下载、音视频合并、智能裁剪、多渠道分发',
+    color: '#e74c3c',
+    flow: ['URL 解析', '格式探测', '流式下载', '音视频合并', '智能裁剪', '文件分发'],
+    nodes: [
+      { title: 'URL 解析与元数据提取', desc: '解析视频链接，提取标题、时长、分辨率、可用格式列表等元数据。',
+        tips: [
+          { type: 'optimize', text: '搭建视频信息预览API，输出结构化JSON供前端调用' },
+          { type: 'optimize', text: '缓存已解析的元数据，避免重复请求触发风控' },
+          { type: 'commercial', text: '提供付费API服务，按解析次数计费（如 0.01元/次）' },
+        ]},
+      { title: '格式选择与流式下载', desc: '根据用户需求自动选择最佳画质/码率组合，支持断点续传。',
+        tips: [
+          { type: 'optimize', text: '实现自适应码率选择：网络差自动降级，避免下载失败' },
+          { type: 'optimize', text: '加入任务队列系统，支持批量下载和优先级调度' },
+          { type: 'commercial', text: '推出会员加速下载，提供多线程+CDN优化通道' },
+        ]},
+      { title: '音视频合并与转码', desc: '将分离的音视频流合并为单一MP4文件，支持格式转换。',
+        tips: [
+          { type: 'optimize', text: '硬件加速编码（VideoToolbox/NVENC），提升转码速度3-5x' },
+          { type: 'optimize', text: '提供压缩选项：按目标文件大小自动调整码率' },
+          { type: 'commercial', text: '批量转码服务：面向视频创作者的内容处理管道' },
+        ]},
+      { title: '智能裁剪与片段提取', desc: '按时间戳裁剪指定片段，支持精准到帧的切割。',
+        tips: [
+          { type: 'optimize', text: '关键帧对齐裁剪，保证切割点画面完整' },
+          { type: 'optimize', text: '支持更多切割模式：按场景分割、静音检测分割' },
+          { type: 'commercial', text: '短视频二次创作工具：自动提取高光片段+字幕生成' },
+        ]},
+    ],
+    summary: '整套视频流水线可封装为 SaaS 平台：用户粘贴链接 → 选择参数 → 云端处理 → 直接获取结果。面向自媒体从业者、短视频运营团队，按处理时长或包月订阅收费。'
+  },
+  {
+    id: 'web-scraping',
+    icon: '🕷️',
+    title: '网页数据抓取与分析',
+    brief: '无头浏览器自动化抓取、DOM解析、结构化输出、数据清洗',
+    color: '#2ecc71',
+    flow: ['目标分析', '环境部署', '页面渲染', 'DOM 解析', '数据清洗', 'JSON 输出'],
+    nodes: [
+      { title: '目标分析与反爬评估', desc: '分析目标网站加载方式（SSR/CSR）、反爬策略（Cloudflare/验证码）、数据量级。',
+        tips: [
+          { type: 'optimize', text: '建立站点指纹库：预存各平台的反爬策略和绕过方案' },
+          { type: 'optimize', text: '智能切换UA/代理池，降低单IP请求频率' },
+          { type: 'commercial', text: '反爬评估报告服务：为电商/平台客户检测数据暴露风险' },
+        ]},
+      { title: '环境部署与浏览器配置', desc: 'Playwright/Selenium无头浏览器部署，Cookie注入，代理配置。',
+        tips: [
+          { type: 'optimize', text: '容器化部署：Docker封装浏览器环境，秒级扩缩容' },
+          { type: 'optimize', text: '连接本地浏览器CDP，减少资源占用，规避检测' },
+          { type: 'commercial', text: '托管浏览器集群服务：按并发数和时长计费' },
+        ]},
+      { title: '动态页面渲染与等待', desc: '等待JS执行完成、动态内容加载、SPA页面完全渲染。',
+        tips: [
+          { type: 'optimize', text: '智能等待策略：监听特定DOM节点出现而非固定超时' },
+          { type: 'optimize', text: '网络空闲检测：等待所有XHR请求完成后再提取数据' },
+          { type: 'commercial', text: '提供渲染中间件API：接入即可获取渲染后的完整HTML' },
+        ]},
+      { title: '结构化提取与清洗', desc: '从渲染后的DOM中提取目标数据，去重、格式化、校验。',
+        tips: [
+          { type: 'optimize', text: '声明式选择器配置：用JSON定义提取规则，无需改代码' },
+          { type: 'optimize', text: '数据质量看板：实时监控字段完整率、异常值' },
+          { type: 'commercial', text: '竞品价格监控SaaS：电商定价策略的数据基础设施' },
+        ]},
+    ],
+    summary: '数据抓取能力可演变为「行业数据中台」：为电商、招聘、房产等垂直行业提供持续的数据采集→清洗→分析服务。按数据量级订阅收费，客单价高且续费稳定。'
+  },
+  {
+    id: 'web-building',
+    icon: '🌐',
+    title: '网站建设与自动部署',
+    brief: '从零搭建前端应用、静态化处理、GitHub Pages自动发布',
+    color: '#3498db',
+    flow: ['需求分析', 'UI 设计', '前端开发', '数据嵌入', '仓库创建', 'Pages 发布'],
+    nodes: [
+      { title: '需求分析与原型设计', desc: '理解用户需求，确定功能范围、页面结构、交互流程。',
+        tips: [
+          { type: 'optimize', text: '建立需求模板库：常见站点类型快速匹配模板，减少沟通成本' },
+          { type: 'optimize', text: '对话式需求采集：AI引导用户逐步确认关键需求点' },
+          { type: 'commercial', text: 'AI建站咨询：快速出原型+报价，转化率比传统方式提升3x' },
+        ]},
+      { title: '前端UI开发', desc: '响应式布局、组件化开发、交互实现。',
+        tips: [
+          { type: 'optimize', text: '组件市场：预制小红书卡片、瀑布流等高频组件，一键插入' },
+          { type: 'optimize', text: '主题系统：支持暗黑/明亮模式一键切换' },
+          { type: 'commercial', text: '付费组件库+模板市场：类似ThemeForest的AI生成模板' },
+        ]},
+      { title: '数据嵌入与静态化', desc: '将动态数据转为内嵌JSON，使页面无需后端即可运行。',
+        tips: [
+          { type: 'optimize', text: '增量更新策略：仅重新生成变动部分，避免全量重建' },
+          { type: 'optimize', text: '混合模式：静态外壳+动态数据注入的折中方案' },
+          { type: 'commercial', text: '静态站点生成服务：企业官网/落地页秒级生成，年费制' },
+        ]},
+      { title: 'GitHub Pages 部署', desc: '创建仓库、推送代码、开启Pages、绑定自定义域名。',
+        tips: [
+          { type: 'optimize', text: 'CI/CD流水线：git push自动构建→测试→部署全自动化' },
+          { type: 'optimize', text: '自定义域名+SSL：自动配置Cloudflare DNS和证书' },
+          { type: 'commercial', text: '一键部署SaaS：用户可视化编辑，自动部署到独立子域名' },
+        ]},
+    ],
+    summary: '可包装为「AI建站工具」：用户用自然语言描述需求 → AI自动生成站点 → 一键部署到公网。面向小微商家、个人品牌、活动落地页场景，按月/按年付费。'
+  },
+  {
+    id: 'skill-mgmt',
+    icon: '🧩',
+    title: 'AI 技能工具链管理',
+    brief: '技能安装、配置、调试、同步到云端、全局生效',
+    color: '#9b59b6',
+    flow: ['需求识别', '技能搜索', 'SKILL 配置', '全局安装', '云端同步', '调用验证'],
+    nodes: [
+      { title: '技能需求识别', desc: '分析用户意图，匹配合适的既有技能或确定需要开发新技能。',
+        tips: [
+          { type: 'optimize', text: '技能推荐系统：根据用户历史对话自动推荐相关技能' },
+          { type: 'optimize', text: '缺失检测：当用户需求无法匹配时，自动触发技能创建流程' },
+          { type: 'commercial', text: '企业技能定制：为团队开发专属技能，提高协作效率' },
+        ]},
+      { title: 'SKILL.md 规范编写', desc: '定义技能的触发词、功能描述、参数说明、执行协议。',
+        tips: [
+          { type: 'optimize', text: 'SKILL模板生成器：输入功能描述，自动生成标准SKILL.md' },
+          { type: 'optimize', text: '版本管理：SKILL.md纳入Git管理，支持版本回滚' },
+          { type: 'commercial', text: '技能审计服务：检查企业内技能的安全性和合规性' },
+        ]},
+      { title: '全局安装与依赖管理', desc: '将技能安装到全局agents目录，处理脚本依赖和环境变量。',
+        tips: [
+          { type: 'optimize', text: '自动化安装脚本：一键安装+环境检测+依赖补全' },
+          { type: 'optimize', text: '沙箱隔离：每个技能运行在独立环境，互不干扰' },
+          { type: 'commercial', text: '技能市场平台：类似App Store的技能分发和安装服务' },
+        ]},
+      { title: '云端同步与多端共享', desc: '将本地技能同步到云端Agent Manager，多设备共享。',
+        tips: [
+          { type: 'optimize', text: '增量同步：仅上传变化部分，节省带宽和时间' },
+          { type: 'optimize', text: '权限管理：按团队/项目粒度控制技能可见性' },
+          { type: 'commercial', text: '企业级Agent管理后台：统一管理全公司的AI技能库' },
+        ]},
+    ],
+    summary: '技能管理可产品化为「AI Agent 工作台」：企业管理员集中管理、分配、监控AI助手的技能权限，按席位订阅。对标低代码平台的AI版本。'
+  },
+  {
+    id: 'tunnel',
+    icon: '🔌',
+    title: '内网穿透与公网暴露',
+    brief: '本地服务通过 Cloudflare Tunnel 零成本暴露到公网',
+    color: '#f39c12',
+    flow: ['服务启动', '隧道工具选择', '隧道建立', '公网访问', '监控维护'],
+    nodes: [
+      { title: '隧道工具选型', desc: '根据场景选择：Cloudflare Tunnel(免费)、ngrok(调试友好)、frp(自建)。',
+        tips: [
+          { type: 'optimize', text: '多工具封装：统一抽象层，支持一键切换隧道后端' },
+          { type: 'optimize', text: '自动备灾：主隧道断开自动切换到备用隧道' },
+          { type: 'commercial', text: '隧道聚合服务：一个固定域名绑定多个本地服务，按路由分发' },
+        ]},
+      { title: 'Cloudflare Tunnel 部署', desc: '安装cloudflared、创建隧道、绑定域名、配置访问策略。',
+        tips: [
+          { type: 'optimize', text: 'Docker Compose编排：隧道+业务服务一键启动' },
+          { type: 'optimize', text: '访问控制：附加IP白名单、Basic Auth、OAuth认证' },
+          { type: 'commercial', text: '临时演示环境：为客户提供限时访问的演示链接，自动过期销毁' },
+        ]},
+      { title: '域名绑定与SSL', desc: '绑定自有域名，自动配置HTTPS证书，确保安全性。',
+        tips: [
+          { type: 'optimize', text: '泛域名通配：*.user.example.com自动指向对应本地服务' },
+          { type: 'optimize', text: '证书自动续期：Let's Encrypt + DNS-01挑战' },
+          { type: 'commercial', text: '自定义域名服务：为客户提供branded域名+SSL一站式配置' },
+        ]},
+    ],
+    summary: '内网穿透能力可打包为「DevOps工具箱」：面向开发者的临时环境共享、Webhook调试、内网服务公网化。免费版限额，Pro版无限隧道+自定义域名。'
+  },
+  {
+    id: 'ai-dev',
+    icon: '🤖',
+    title: 'AI 对话驱动开发',
+    brief: '通过自然语言描述需求，AI理解意图并自动执行多步操作完成任务',
+    color: '#1abc9c',
+    flow: ['需求描述', '意图理解', '工具编排', '代码生成', '验证反馈', '迭代交付'],
+    nodes: [
+      { title: '自然语言需求解析', desc: '将模糊的用户描述转化为结构化任务，区分意图和约束条件。',
+        tips: [
+          { type: 'optimize', text: '上下文聚合：自动关联历史对话中的相关信息，减少重复描述' },
+          { type: 'optimize', text: '需求结构化模板：自动提取"做什么、用什么工具、输出什么"' },
+          { type: 'commercial', text: '需求文档自动生成：AI对话 → PRD/技术方案文档（面向甲方）' },
+        ]},
+      { title: '工具编排与执行', desc: '将任务拆解为有序步骤，调用对应工具/脚本依次执行。',
+        tips: [
+          { type: 'optimize', text: '执行计划可视化工单：执行前展示完整操作计划，用户确认后执行' },
+          { type: 'optimize', text: '失败自动回滚：某一步失败时自动恢复到上一个安全状态' },
+          { type: 'commercial', text: '企业自动化工作流：用自然语言定义审批→执行→通知的自动化流程' },
+        ]},
+      { title: '代码生成与质量保障', desc: '根据需求生成代码文件，确保符合项目规范和最佳实践。',
+        tips: [
+          { type: 'optimize', text: '项目脚手架：自动识别项目类型，遵循已有代码风格和架构约定' },
+          { type: 'optimize', text: '自动测试：生成代码的同时生成单元测试，保证覆盖率' },
+          { type: 'commercial', text: '代码审查SaaS：AI+人工双重审查，为外包团队提供质量保障' },
+        ]},
+      { title: '交付与部署', desc: '将完成的代码推送到GitHub、发布上线、提供访问地址。',
+        tips: [
+          { type: 'optimize', text: '一键部署：代码完成 → 符合规范 → 自动推送 → 自动发布' },
+          { type: 'optimize', text: '部署回滚：保留历史版本，异常时一键回滚' },
+          { type: 'commercial', text: 'AI DevOps托管：从需求到上线全托管服务，按月订阅' },
+        ]},
+    ],
+    summary: 'AI对话驱动开发是以上所有场景的「大脑」—— 统一入口，智能编排。可发展为「AI软件工厂」：用户提需求 → 系统自动完成开发→测试→部署全流程。面向中小企业、外包团队、个人开发者，按项目或订阅收费。'
+  }
+];
+
+// Render
+function render() {
+  const app = document.getElementById('app');
+  let totalNodes = 0, totalTips = 0;
+
+  let html = '';
+  scenarios.forEach(s => {
+    const nodeCount = s.nodes.length;
+    const tipCount = s.nodes.reduce((sum, n) => sum + n.tips.length, 0);
+    totalNodes += nodeCount;
+    totalTips += tipCount;
+
+    html += `
+      <div class="scenario" id="s-${s.id}">
+        <div class="scenario-header" onclick="toggleScenario('${s.id}')">
+          <div class="left">
+            <div class="icon" style="background:${s.color}22">${s.icon}</div>
+            <div class="info">
+              <h3>${s.title}</h3>
+              <div class="brief">${s.brief} · ${nodeCount}节点 ${tipCount}建议</div>
+            </div>
+          </div>
+          <div class="toggle">▼</div>
+        </div>
+        <div class="scenario-body">
+          <div class="flow">
+            ${s.flow.map((n, i) => `
+              ${i > 0 ? '<span class="arrow">→</span>' : ''}
+              <span class="node">${n}</span>
+            `).join('')}
+          </div>
+          <div class="node-list">
+            ${s.nodes.map(n => `
+              <div class="node-item">
+                <div class="node-title">${n.title}</div>
+                <div class="node-desc">${n.desc}</div>
+                <div class="tips">
+                  ${n.tips.map(t => `
+                    <span class="tip ${t.type === 'commercial' ? 'commercial' : ''}">
+                      ${t.type === 'commercial' ? '💰' : '⚡'} <span class="tag">${t.type === 'commercial' ? '商业化' : '优化'}</span>
+                      ${t.text}
+                    </span>
+                  `).join('')}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          <div class="summary">
+            <div class="label">📋 商业化总览</div>
+            <div class="text">${s.summary}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  app.innerHTML = html;
+  document.getElementById('totalScenarios').textContent = scenarios.length;
+  document.getElementById('totalNodes').textContent = totalNodes;
+  document.getElementById('totalTips').textContent = totalTips;
+}
+
+function toggleScenario(id) {
+  const el = document.getElementById('s-' + id);
+  el.classList.toggle('open');
+}
+
+render();
+</script>
+</body>
+</html>
