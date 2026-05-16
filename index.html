@@ -303,6 +303,21 @@
     .card-cover .cover-emoji { font-size: 36px; }
     .card-cover .cover-title { font-size: 13px; }
   }
+
+  /* 多列模式（≥960px 3列 或 ≥1280px 4列）下，卡片内容更紧凑 */
+  @media (min-width: 960px) {
+    .card-cover { height: 110px; }
+    .card-cover .cover-emoji { font-size: 34px; }
+    .card-cover .cover-title { font-size: 12px; }
+    .card-body { padding: 10px 12px 12px; }
+    .expand-content { padding: 14px; }
+    .node-item { padding: 10px 12px; }
+    .node-item .node-desc { font-size: 11px; line-height: 1.5; }
+    .flow-tags { gap: 4px; margin-bottom: 14px; padding-bottom: 12px; }
+    .flow-tags .tag { font-size: 10px; padding: 2px 8px; }
+    .card-summary { padding: 10px 12px; }
+    .card-summary .text { font-size: 11px; line-height: 1.6; }
+  }
 </style>
 </head>
 <body>
