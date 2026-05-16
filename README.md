@@ -25,9 +25,9 @@ AI 对话驱动开发 — 场景节点拆解与商业化优化指南。
 
 ## 部署方式
 
-### GitHub Pages（当前方案）
+### GitHub Pages（当前方案 · 自动发布）
 
-纯静态页面，所有数据内嵌在 HTML 中。
+纯静态页面，所有数据内嵌在 HTML 中。**修改后 push 到 main 分支即自动发布到 Pages。**
 
 - **Pages 地址**: https://hanhuizhu.github.io/scenario-warehouse/
 - **GitHub 仓库**: https://github.com/hanhuizhu/scenario-warehouse
