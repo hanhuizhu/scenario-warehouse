@@ -8,7 +8,7 @@
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Roboto, "Segoe UI", sans-serif;
-    background: #f5f5f7;
+    background: #f2f2f5;
     color: #1d1d1f;
     line-height: 1.6;
   }
@@ -18,6 +18,11 @@
     text-align: center;
     padding: 48px 20px 32px;
     position: relative;
+    background: #fff;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+    position: sticky;
+    top: 0;
+    z-index: 100;
   }
   .header::after {
     content: '';
@@ -57,13 +62,18 @@
   .header .stats .num { font-size: 24px; font-weight: 700; color: #ff2442; }
   .header .stats .label { font-size: 11px; color: #86868b; margin-top: 1px; }
 
-  /* Container - 双列布局 */
-  .container { max-width: 860px; margin: 0 auto; padding: 20px 16px 40px; }
+  /* Container - 自适应多列布局 */
+  .container { max-width: 1200px; margin: 0 auto; padding: 20px 16px 40px; }
 
+  /* 用 Flexbox 实现多列自适应（宽度由 JS 控制） */
   .grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    margin: -7px;
+  }
+
+  .grid > .card {
+    padding: 7px;
   }
 
   /* Card - 小红书卡片 */
@@ -71,16 +81,20 @@
     background: #fff;
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
     cursor: pointer;
-    break-inside: avoid;
+    border: 1px solid transparent;
   }
-  .card:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,0.10); }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
+  .card.open {
+    border-color: #ff2442;
+    box-shadow: 0 4px 16px rgba(255,36,66,0.10);
+  }
 
   /* Card Cover */
   .card-cover {
-    height: 130px;
+    height: 150px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -88,50 +102,50 @@
     overflow: hidden;
     background-size: cover;
     background-position: center;
+    transition: height 0.25s ease;
   }
   .card-cover::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.55));
+    background: linear-gradient(to bottom, rgba(0,0,0,0.05) 30%, rgba(0,0,0,0.6));
   }
-  .card-cover .cover-emoji { font-size: 44px; position: relative; z-index: 1; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3)); }
+  .card-cover .cover-emoji {
+    font-size: 44px;
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));
+    transition: transform 0.3s ease;
+  }
+  .card:hover .cover-emoji { transform: scale(1.12); }
   .card-cover .cover-tag {
     position: absolute;
     top: 10px;
     right: 10px;
-    background: rgba(0,0,0,0.5);
-    backdrop-filter: blur(4px);
-    color: #fff;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(6px);
+    color: #333;
     font-size: 10px;
     padding: 3px 10px;
-    border-radius: 10px;
-    font-weight: 500;
+    border-radius: 20px;
+    font-weight: 600;
     z-index: 2;
+    letter-spacing: 0.3px;
   }
   .card-cover .cover-title {
     position: absolute;
-    bottom: 10px;
+    bottom: 12px;
     left: 14px;
     color: #fff;
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 700;
     z-index: 2;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    text-shadow: 0 1px 6px rgba(0,0,0,0.4);
+    letter-spacing: 0.5px;
   }
 
   /* Card Body */
   .card-body { padding: 14px 16px 16px; }
-  .card-body .card-title {
-    font-size: 15px;
-    font-weight: 600;
-    color: #1d1d1f;
-    margin-bottom: 4px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
   .card-body .card-brief {
     font-size: 12px;
     color: #86868b;
@@ -157,95 +171,122 @@
     color: #ff2442;
     font-weight: 600;
   }
+  .expand-indicator {
+    margin-left: auto;
+    color: #ff2442;
+    font-size: 12px;
+    font-weight: 700;
+    display: inline-block;
+    transition: transform 0.3s ease;
+  }
+  .expand-indicator::before { content: '展开 '; font-weight: 400; }
+  .card.open .expand-indicator { transform: rotate(180deg); }
+  .card.open .expand-indicator::before { content: '收起 '; }
 
-  /* Card Expanded */
-  .card-expand { display: none; }
-  .card.open .card-expand { display: block; }
+  /* Card Expanded - animation */
+  .card-expand {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.4s ease;
+  }
+  .card.open .card-expand { grid-template-rows: 1fr; }
 
   .card-expand-inner {
-    border-top: 1px solid #f0f0f0;
-    padding: 16px;
+    overflow: hidden;
     background: #fafafa;
+  }
+  .card-expand-inner .expand-content {
+    padding: 20px;
   }
 
   /* Flow Tags */
   .flow-tags {
-    display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px;
+    display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px dashed #e8e8ed;
   }
   .flow-tags .tag {
     background: #fff;
     border: 1px solid #e8e8ed;
-    padding: 4px 10px;
-    border-radius: 6px;
+    padding: 3px 10px;
+    border-radius: 20px;
     font-size: 11px;
     color: #666;
+    font-weight: 500;
   }
   .flow-tags .arrow { color: #d0d0d5; font-size: 12px; line-height: 26px; }
 
   /* Node Details */
-  .node-list { display: flex; flex-direction: column; gap: 10px; }
+  .node-list { display: flex; flex-direction: column; gap: 12px; }
   .node-item {
     background: #fff;
     border: 1px solid #eee;
-    border-radius: 10px;
-    padding: 12px 14px;
+    border-left: 3px solid #ddd;
+    border-radius: 0 10px 10px 0;
+    padding: 14px 16px;
+    transition: border-left-color 0.2s, box-shadow 0.2s;
+  }
+  .node-item:hover {
+    border-left-color: #ff2442;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.04);
   }
   .node-item .node-title {
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
     color: #1d1d1f;
-    margin-bottom: 3px;
+    margin-bottom: 4px;
   }
   .node-item .node-desc {
     font-size: 12px;
     color: #86868b;
-    line-height: 1.6;
-    margin-bottom: 8px;
+    line-height: 1.7;
+    margin-bottom: 10px;
   }
   .node-item .tips {
-    display: flex; flex-direction: column; gap: 5px;
+    display: flex; flex-direction: column; gap: 6px;
   }
   .node-item .tip {
     font-size: 11px;
-    padding: 5px 10px;
+    padding: 6px 10px;
     border-radius: 6px;
-    line-height: 1.5;
+    line-height: 1.6;
   }
   .node-item .tip.optimize {
     background: #f0faf0;
     color: #2d6a2d;
   }
-  .node-item .tip.optimize .tag { color: #4caf50; font-weight: 600; margin-right: 3px; }
+  .node-item .tip.optimize .tag { color: #4caf50; font-weight: 600; margin-right: 4px; }
   .node-item .tip.commercial {
-    background: #fef0f0;
-    color: #c0392b;
+    background: #fef2f2;
+    color: #b91c1c;
   }
-  .node-item .tip.commercial .tag { color: #ff2442; font-weight: 600; margin-right: 3px; }
+  .node-item .tip.commercial .tag { color: #ff2442; font-weight: 600; margin-right: 4px; }
 
   /* Summary */
   .card-summary {
-    margin-top: 12px;
-    padding: 12px 14px;
+    margin-top: 16px;
     background: #fff;
     border: 1px solid #eee;
-    border-radius: 10px;
+    border-left: 3px solid #ff2442;
+    border-radius: 0 10px 10px 0;
+    padding: 14px 16px;
   }
   .card-summary .label {
     font-size: 11px;
     color: #ff2442;
     font-weight: 600;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
   }
   .card-summary .text {
     font-size: 12px;
-    color: #666;
-    line-height: 1.7;
+    color: #555;
+    line-height: 1.8;
   }
 
   /* Footer */
   .footer {
     text-align: center;
-    padding: 28px;
+    padding: 28px 20px;
     color: #c0c0c0;
     font-size: 12px;
     border-top: 1px solid #eee;
@@ -254,13 +295,13 @@
 
   /* Responsive */
   @media (max-width: 640px) {
-    .grid { grid-template-columns: 1fr; gap: 12px; }
+    .grid { margin: -4px; }
+    .grid > .card { padding: 4px; }
     .header { padding: 32px 16px 24px; }
     .header .stats { gap: 20px; }
-    .card-cover { height: 110px; }
+    .card-cover { height: 120px; }
     .card-cover .cover-emoji { font-size: 36px; }
-    .card-cover .cover-title { font-size: 12px; }
-    .card-cover .cover-emoji { font-size: 36px; }
+    .card-cover .cover-title { font-size: 13px; }
   }
 </style>
 </head>
@@ -915,11 +956,12 @@ function render() {
           <div class="card-meta">
             <span>📋 <em>${nodeCount}</em> 节点</span>
             <span>💡 <em>${tipCount}</em> 建议</span>
-            <span style="margin-left:auto;color:#ff2442;font-size:11px">展开 ∨</span>
+            <span class="expand-indicator">∨</span>
           </div>
         </div>
         <div class="card-expand">
           <div class="card-expand-inner">
+            <div class="expand-content">
             <div class="flow-tags">
               ${s.flow.map((n, i) => `
                 ${i > 0 ? '<span class="arrow">→</span>' : ''}
@@ -964,7 +1006,20 @@ function toggleCard(id) {
   el.classList.toggle('open');
 }
 
+function updateCardLayout() {
+  const w = window.innerWidth;
+  let cols = 2;
+  if (w <= 640) cols = 1;
+  else if (w >= 1280) cols = 4;
+  else if (w >= 960) cols = 3;
+
+  const cards = document.querySelectorAll('.grid > .card');
+  cards.forEach(c => c.style.width = (100 / cols) + '%');
+}
+
 render();
+updateCardLayout();
+window.addEventListener('resize', updateCardLayout);
 </script>
 </body>
 </html>
