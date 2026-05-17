@@ -65,15 +65,13 @@
   /* Container - 自适应多列布局 */
   .container { max-width: 1200px; margin: 0 auto; padding: 20px 16px 40px; }
 
-  /* 用 Flexbox 实现多列自适应（宽度由 JS 控制） */
+  /* 单列布局 */
   .grid {
     display: flex;
-    flex-wrap: wrap;
-    margin: -7px;
-  }
-
-  .grid > .card {
-    padding: 7px;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 720px;
+    margin: 0 auto;
   }
 
   /* Card - 小红书卡片 */
@@ -341,20 +339,9 @@
     .card-cover .cover-title { font-size: 13px; }
   }
 
-  /* 多列模式（≥960px 3列 或 ≥1280px 4列）下，卡片内容更紧凑 */
-  @media (min-width: 960px) {
-    .card-cover { height: 110px; }
-    .card-cover .cover-emoji { font-size: 34px; }
-    .card-cover .cover-title { font-size: 12px; }
-    .card-body { padding: 10px 12px 12px; }
-    .expand-content { padding: 14px; }
-    .node-item { padding: 10px 12px; }
-    .node-item .node-desc { font-size: 11px; line-height: 1.5; }
-    .flow-tags { gap: 4px; margin-bottom: 14px; padding-bottom: 12px; }
-    .flow-tags .tag { font-size: 10px; padding: 2px 8px; }
-    .card-summary { padding: 10px 12px; }
-    .card-summary .text { font-size: 11px; line-height: 1.6; }
-  }
+  /* 大屏幕下卡片宽度舒适 */
+  .card-cover { height: 160px; }
+  .card-cover .cover-emoji { font-size: 48px; }
 </style>
 </head>
 <body>
@@ -1137,20 +1124,7 @@ function toggleCard(id) {
   el.classList.toggle('open');
 }
 
-function updateCardLayout() {
-  const w = window.innerWidth;
-  let cols = 2;
-  if (w <= 640) cols = 1;
-  else if (w >= 1280) cols = 4;
-  else if (w >= 960) cols = 3;
-
-  const cards = document.querySelectorAll('.grid > .card');
-  cards.forEach(c => c.style.width = (100 / cols) + '%');
-}
-
 render();
-updateCardLayout();
-window.addEventListener('resize', updateCardLayout);
 </script>
 </body>
 </html>
