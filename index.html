@@ -545,7 +545,7 @@ function buildSidebar() {
     <div class="sidebar-item" onclick="scrollToCard('${s.id}', this)" data-id="${s.id}">
       <span class="s-icon">${s.icon}</span>
       <span class="s-title">${s.title}</span>
-      <span class="s-date">${s.date.replace('2026-', '')}</span>
+      <span class="s-date">${s.date}</span>
     </div>
   `).join('');
 }
@@ -555,10 +555,15 @@ function scrollToCard(id, el) {
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sidebarOverlay').classList.remove('open');
 
-  // Scroll to card
+  // Scroll to card banner (cover image area)
   const card = document.getElementById('s-' + id);
   if (card) {
-    card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const banner = card.querySelector('.card-cover');
+    if (banner) {
+      banner.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
     // Open the card
     card.classList.add('open');
     // Highlight the card briefly
