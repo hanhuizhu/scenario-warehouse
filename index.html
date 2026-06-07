@@ -17,12 +17,8 @@
   .header {
     text-align: center;
     padding: 48px 20px 32px;
-    position: relative;
     background: #fff;
     box-shadow: 0 1px 0 rgba(0,0,0,0.04);
-    position: sticky;
-    top: 0;
-    z-index: 100;
   }
   .header::after {
     content: '';
@@ -83,6 +79,7 @@
     transition: transform 0.25s ease, box-shadow 0.25s ease;
     cursor: pointer;
     border: 1px solid transparent;
+    scroll-margin-top: 20px;
   }
   .card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
   .card.open {
